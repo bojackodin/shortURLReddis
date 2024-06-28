@@ -12,23 +12,22 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// var ctx = context.Background()
-
 type application struct {
 	infoLog  *log.Logger
 	errorLog *log.Logger
 	URLmodel redismodel.URLRepository
-	ctx      context.Context
 }
 
 func main() {
 	ctx := context.Background()
+
 	db, err := connectReddisDB(ctx)
 	if err != nil {
 		slog.Error("connect db", "error", err)
 		os.Exit(-1)
 	}
 	defer db.Close()
+
 	slog.Info("redis db connected succesfully")
 
 	addr := ":8080"
@@ -40,8 +39,8 @@ func main() {
 		infoLog:  infoLogs,
 		errorLog: errorLogs,
 		URLmodel: redismodel.NewRedis(db),
-		ctx:      ctx,
 	}
+
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: app.routes(),

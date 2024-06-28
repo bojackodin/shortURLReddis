@@ -2,13 +2,14 @@ package model
 
 import (
 	"context"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type URLRepository interface {
-	Add(ctx context.Context, originalURL, shortKey string) error
-	Get(ctx context.Context, shortKey string) (string, error)
+	Add(originalURL, shortKey string) error
+	Get(shortKey string) (string, error)
 }
 
 type URLPair struct {
@@ -25,15 +26,21 @@ func NewRedis(client *redis.Client) URLRepository {
 	}
 }
 
-func (m *redisClient) Add(ctx context.Context, originalURL, shortKey string) error {
-	err := m.client.Set(ctx, shortKey, originalURL, 0).Err()
+func (m *redisClient) Add(originalURL, shortKey string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.client.Set(ctx, shortKey, originalURL, 1*time.Hour).Err()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *redisClient) Get(ctx context.Context, shortKey string) (string, error) {
+func (m *redisClient) Get(shortKey string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	url, err := m.client.Get(ctx, shortKey).Result()
 	if err != nil {
 		return "", err

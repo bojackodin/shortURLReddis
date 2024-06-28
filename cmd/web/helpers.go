@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -19,4 +21,13 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 
 func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
+}
+
+func generateShortURL(originalURL string) string {
+	const keyLength = 7
+
+	hash := sha256.Sum256([]byte(originalURL))
+	shortURL := base64.StdEncoding.EncodeToString(hash[:])
+
+	return shortURL[:keyLength]
 }
