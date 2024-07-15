@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -29,15 +28,13 @@ func (app *application) createShortURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getShortURL(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
+	key := r.PathValue("shortURL")
 
-	parts := strings.Split(path, "/")
-	if len(parts) > 3 {
+	if key == "" {
 		app.notFound(w)
 		return
 	}
 
-	key := parts[len(parts)-1]
 	originalURL, err := app.URLmodel.Get(key)
 	if err != nil {
 		app.serverError(w, err)

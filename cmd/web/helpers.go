@@ -27,7 +27,7 @@ func generateShortURL(originalURL string) string {
 	const keyLength = 7
 
 	hash := sha256.Sum256([]byte(originalURL))
-	shortURL := base64.StdEncoding.EncodeToString(hash[:])
+	shortURL := base64.URLEncoding.EncodeToString(hash[:])
 
 	return shortURL[:keyLength]
 }
