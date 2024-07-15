@@ -30,14 +30,14 @@ func (app *application) createShortURL(w http.ResponseWriter, r *http.Request) {
 func (app *application) getShortURL(w http.ResponseWriter, r *http.Request) {
 	key := r.PathValue("shortURL")
 
-	if key == "" {
+	if len(key) < 7 {
 		app.notFound(w)
 		return
 	}
 
 	originalURL, err := app.URLmodel.Get(key)
 	if err != nil {
-		app.serverError(w, err)
+		app.notFound(w)
 		return
 	}
 
