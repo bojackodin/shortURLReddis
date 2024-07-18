@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
 	"runtime/debug"
 )
 
@@ -30,4 +32,18 @@ func generateShortURL(originalURL string) string {
 	shortURL := base64.URLEncoding.EncodeToString(hash[:])
 
 	return shortURL[:keyLength]
+}
+
+func validateURL(u string) bool {
+	re := regexp.MustCompile(`^(http|https)://`)
+	if !re.MatchString(u) {
+		return false
+	}
+
+	parsedURL, err := url.ParseRequestURI(u)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return false
+	}
+
+	return true
 }

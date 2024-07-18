@@ -12,7 +12,12 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 func (app *application) createShortURL(w http.ResponseWriter, r *http.Request) {
 	originalURL := r.URL.Query().Get("url")
 	if originalURL == "" {
-		app.notFound(w)
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if !validateURL(originalURL) {
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -29,11 +34,6 @@ func (app *application) createShortURL(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) getShortURL(w http.ResponseWriter, r *http.Request) {
 	key := r.PathValue("shortURL")
-
-	if len(key) < 7 {
-		app.notFound(w)
-		return
-	}
 
 	originalURL, err := app.URLmodel.Get(key)
 	if err != nil {

@@ -2,23 +2,35 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
+	"os/signal"
 
 	redismodel "github/my-project/URL/shortURLReddis/internal/model"
 
 	"github.com/redis/go-redis/v9"
 )
 
+type config struct {
+	port int
+}
+
 type application struct {
+	config   config
 	infoLog  *log.Logger
 	errorLog *log.Logger
 	URLmodel redismodel.URLRepository
 }
 
 func main() {
+	var cfg config
+
+	flag.IntVar(&cfg.port, "port", 8080, "server port")
+
+	flag.Parse()
+
 	ctx := context.Background()
 
 	db, err := connectReddisDB(ctx)
@@ -30,26 +42,23 @@ func main() {
 
 	slog.Info("redis db connected succesfully")
 
-	addr := ":8080"
-
-	infoLogs := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLogs := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	app := &application{
-		infoLog:  infoLogs,
-		errorLog: errorLogs,
+		config:   cfg,
+		infoLog:  infoLog,
+		errorLog: errorLog,
 		URLmodel: redismodel.NewRedis(db),
 	}
 
-	srv := &http.Server{
-		Addr:    addr,
-		Handler: app.routes(),
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	err = app.run(ctx)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	infoLogs.Printf("Starting server on %s", addr)
-
-	err = srv.ListenAndServe()
-	log.Fatal(err)
 }
 
 func connectReddisDB(ctx context.Context) (*redis.Client, error) {
