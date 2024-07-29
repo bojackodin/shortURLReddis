@@ -1,9 +1,10 @@
+MAIN_IMAGE := shortURLReddis:latest
 MAIN_PACKAGE_PATH := ./cmd/web
-BINARY_NAME := web
+BINARY_NAME := bin/web
 
 .PHONY: build
 build:
-	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+	CGO_ENABLED=0 go build -o ${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 .PHONY: run
 run: build

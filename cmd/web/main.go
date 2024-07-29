@@ -64,7 +64,7 @@ func main() {
 func connectReddisDB(ctx context.Context) (*redis.Client, error) {
 	// Set client options
 	db := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "redis:6379",
 		Password: "",
 		DB:       0,
 	})
